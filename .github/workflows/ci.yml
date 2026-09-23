@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Lint
+        run: |
+          uv run ruff check
+          uv run ruff format --check
+      - name: Test
+        run: uv run pytest
+      - name: Smoke test
+        run: |
+          uv run git-autofetch --version
+          uv run git-autofetch --help
