@@ -88,12 +88,48 @@ Everything else is optional:
 | `parallel` | `4` | Repositories fetched at once |
 | `fetch_timeout` | `60` | Seconds before a single fetch is abandoned |
 | `connect_timeout` | `30` | Seconds the canary fetch has to finish, including any login |
-| `idle_threshold` | `180` | Seconds without input after which a fresh login waits for you. `0` never logs in unattended |
+| `idle_threshold` | `180` | Seconds without keyboard, mouse or trackpad input after which a fresh login waits for you to come back. Raise it to log in even while you're away |
 | `hardware_key` | *(none)* | USB id of your security key, `"0xVID"` or `"0xVID:0xPID"` in hex. A fresh login waits until it's plugged in |
 | `control_path` | *(own socket)* | ssh `ControlPath` for the shared connection. See below |
 | `control_persist` | `"24h"` | How long a shared connection stays open once idle |
 | `ssh_auth_sock` | *(inherited)* | ssh agent socket, for agents launchd services don't know about |
 | `askpass` | *(none)* | Program ssh uses to ask for a passphrase or show a touch prompt |
+
+A complete config with every setting. Leave out any line you don't need:
+
+```toml
+# ~/.config/git-autofetch/config.toml
+
+interval = 300          # seconds between fetch cycles
+parallel = 4            # repositories fetched at once
+fetch_timeout = 60      # seconds before a single fetch is abandoned
+connect_timeout = 30    # seconds the canary fetch has, including any login
+idle_threshold = 180    # a fresh login waits if you've been away this long
+
+# Only if you use a hardware security key: a fresh login waits until it's
+# plugged in. "0xVID" or "0xVID:0xPID" in hex; 0x1050 is any YubiKey.
+hardware_key = "0x1050"
+
+# Share the connections your own ssh opens. Use the ControlPath from your
+# ~/.ssh/config, or leave both out to keep git-autofetch's connections separate.
+control_path = "~/.ssh/cm-%r@%h:%p"
+control_persist = "24h"
+
+# An agent launchd services don't know about, here 1Password's.
+ssh_auth_sock = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+# A graphical program for ssh's passphrase and touch prompts, such as
+# https://github.com/wmxscott/seckey-dialog
+askpass = "/opt/homebrew/opt/seckey-dialog/bin/seckey-dialog"
+
+[[repos]]
+path = "~/src/website"
+
+[[repos]]
+path = "~/src"
+recursive = true
+max_depth = 2
+```
 
 The config is read again before every cycle, so changes apply without a restart. A path that doesn't exist, or a folder that isn't a repository and isn't marked `recursive`, is logged and skipped.
 
